@@ -1,3 +1,5 @@
+const browser = chrome; // For Chromium browsers < 146
+
 let selecting = false;
 let selText = "";
 
@@ -37,8 +39,8 @@ function evalSelection(){
 }
 
 function createOverlay(rect){
-    sendExtensionMessage({selection: window.getSelection().toString()}, (res) => {
-        console.log(res);
+    sendExtensionMessage("check", {selection: window.getSelection().toString()}, (res) => {
+        // create buttons etc etc
     });
     
 
@@ -55,6 +57,9 @@ function createOverlay(rect){
     }
 
     overlay.style.left = (rect.left+window.scrollX+(rect.width/2)-(overlay.offsetWidth/2)).toString()+"px";
+    overlay.querySelector("#ext-btn-search").addEventListener("click", () => sendExtensionMessage("search", {selection: window.getSelection().toString()}, ()=>{}));
+    overlay.querySelector("#ext-btn-copy").addEventListener("click", () => navigator.clipboard.writeText(window.getSelection().toString()).then(() => destroyOverlay()));
+
 }
 
 function destroyOverlay(){
@@ -63,9 +68,9 @@ function destroyOverlay(){
 }
 
 async function sendExtensionMessage(type, obj, cb){
-    const payload = new Object.fromEntries(obj);
-    payload.type = type;
-    const browser = chrome;
+    const payload = obj;
+    payload.type = type
     const res = await browser.runtime.sendMessage(payload);
+    
     cb(res);
 }
