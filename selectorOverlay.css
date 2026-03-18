@@ -1,45 +1,47 @@
 #selectionOverlay {
     position: absolute;
     z-index: 2147483647;
-    /* The drop-shadow is applied here so it traces the clip-path! */
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); 
+    width: max-content;
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4));
+    
 }
 
 .ext-tooltip-container {
     display: flex;
     align-items: center;
-    /* Here is your seamless gradient! */
-    background: linear-gradient(135deg, #2f3136 0%, #1e1f22 100%);
-    border-radius: 6px;
-    padding: 4px 6px;
+    background: radial-gradient(at bottom, #333342 30%, #191922) padding-box, linear-gradient(to top, #191922 10%, #333342) border-box;
+    border-radius: 4px; 
+    padding: 4px 6px; 
+    border: 1px solid transparent;
+    position: relative;
+    isolation: isolate;
+}
 
-    /* We add 8px of padding to the bottom to make room for the triangle */
-    padding-bottom: 16px; 
-
-    /* The Clip Path: Cuts out the rectangle + the center triangle */
-    clip-path: polygon(
-    0% 0%, 
-    100% 0%, 
-    100% calc(100% - 8px), 
-    calc(50% + 8px) calc(100% - 8px), 
-    50% 100%, 
-    calc(50% - 8px) calc(100% - 8px), 
-    0% calc(100% - 8px)
-    );
+.ext-tooltip-container::after {
+    content: "";
+    position: absolute;
+    top: 100%; 
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: -1px;
+    width: 32px;  
+    height: 8px;  
+    background-color: #333342;
+    clip-path: polygon(0 0, 100% 0, 70% 100%, 30% 100%);
 }
 
 .ext-tooltip-btn {
     cursor: pointer;
-    color: #eab768;
+    color: #bab8bd;
     padding: 6px 12px;
-    font-family: system-ui, -apple-system, sans-serif;
-    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: lighter;
+    letter-spacing: 1px;
+    font-size: 12px;
     font-weight: 500;
     user-select: none;
-    border-radius: 4px;
+    border-radius: 4px; 
     transition: background-color 0.15s ease;
-    /* We margin-bottom here to counter the container's extra padding */
-    margin-bottom: -8px; 
 }
 
 .ext-tooltip-btn:hover {
@@ -51,5 +53,18 @@
     height: 16px;
     background-color: rgba(255, 255, 255, 0.08);
     margin: 0 2px;
-    margin-bottom: -8px; /* Counter the container padding */
+}
+
+.ext-tooltip-container.inverted{
+    background: radial-gradient(at top, #333342 30%, #191922) padding-box, linear-gradient(to bottom, #191922 10%, #333342) border-box;
+
+    &::after {
+        top: auto;
+        bottom: 100%; 
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: -1px;
+        margin-top: 0;
+        clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%);
+    }
 }
