@@ -1,0 +1,19 @@
+{
+    "name": "PopupHelper",
+    "description": "Copy of the Opera GX popup over selected text.",
+    "version": "1",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["selector.js"],
+            "all_frames": true
+        }
+    ],
+    "permissions": ["storage", "search"],
+    "action": {
+    }
+}
