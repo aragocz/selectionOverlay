@@ -1,0 +1,55 @@
+#selectionOverlay {
+    position: absolute;
+    z-index: 2147483647;
+    /* The drop-shadow is applied here so it traces the clip-path! */
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); 
+}
+
+.ext-tooltip-container {
+    display: flex;
+    align-items: center;
+    /* Here is your seamless gradient! */
+    background: linear-gradient(135deg, #2f3136 0%, #1e1f22 100%);
+    border-radius: 6px;
+    padding: 4px 6px;
+
+    /* We add 8px of padding to the bottom to make room for the triangle */
+    padding-bottom: 16px; 
+
+    /* The Clip Path: Cuts out the rectangle + the center triangle */
+    clip-path: polygon(
+    0% 0%, 
+    100% 0%, 
+    100% calc(100% - 8px), 
+    calc(50% + 8px) calc(100% - 8px), 
+    50% 100%, 
+    calc(50% - 8px) calc(100% - 8px), 
+    0% calc(100% - 8px)
+    );
+}
+
+.ext-tooltip-btn {
+    cursor: pointer;
+    color: #eab768;
+    padding: 6px 12px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    user-select: none;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+    /* We margin-bottom here to counter the container's extra padding */
+    margin-bottom: -8px; 
+}
+
+.ext-tooltip-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1); 
+}
+
+.ext-tooltip-divider {
+    width: 1px;
+    height: 16px;
+    background-color: rgba(255, 255, 255, 0.08);
+    margin: 0 2px;
+    margin-bottom: -8px; /* Counter the container padding */
+}

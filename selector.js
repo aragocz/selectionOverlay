@@ -1,53 +1,6 @@
 let selecting = false;
 let selText = "";
 
-const style = document.createElement("style");
-style.textContent = `
-  #selectionOverlay {
-    position: absolute;
-    z-index: 2147483647;
-    /* Drop shadow applies nicely to the whole shape, including the triangle */
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3)); 
-  }
-  .ext-tooltip-container {
-    display: flex;
-    align-items: center;
-    background-color: #232428; /* Dark grey from your image */
-    border-radius: 6px;
-    padding: 4px 6px;
-  }
-  .ext-tooltip-btn {
-    cursor: pointer;
-    color: #eab768; /* Orange-ish text */
-    padding: 6px 12px;
-    font-family: system-ui, -apple-system, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    user-select: none;
-    border-radius: 4px;
-    transition: background-color 0.15s ease;
-  }
-  .ext-tooltip-btn:hover {
-    background-color: #3b3d44; /* Lighter grey on hover */
-  }
-  .ext-tooltip-divider {
-    width: 1px;
-    height: 16px;
-    background-color: rgba(255, 255, 255, 0.08); /* Subtle vertical line */
-    margin: 0 2px;
-  }
-  .ext-tooltip-caret {
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #232428; /* Matches container background */
-    margin: 0 auto;
-    margin-top: -1px; /* Pulls it up slightly for a seamless connection */
-  }
-`;
-document.head.appendChild(style);
-
 const overlay = document.createElement("div");
 overlay.id = "selectionOverlay";
 overlay.innerHTML = `
@@ -55,8 +8,9 @@ overlay.innerHTML = `
     <div class="ext-tooltip-btn" id="ext-btn-search">Search</div>
     <div class="ext-tooltip-divider"></div>
     <div class="ext-tooltip-btn" id="ext-btn-copy">Copy</div>
+    <div class="ext-tooltip-divider"></div>
+    <div class="ext-tooltip-btn" id="ext-btn-snapshot">Snapshot</div>
   </div>
-  <div class="ext-tooltip-caret"></div>
 `;
 
 overlay.addEventListener("mousedown", (e) => e.stopPropagation());
