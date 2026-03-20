@@ -1,5 +1,3 @@
-const browser = chrome; // For Chromium browsers < 146
-
 let selecting = false;
 let selText = "";
 
