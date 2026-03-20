@@ -33,14 +33,19 @@ function checkForSpecial(data = ""){
         return {type:0x1, match: data.match(urlregex).groups.url};
     }else if(timeregex.test(data)){
         return {type:0x2, match: convertTime(data.match(timeregex).groups)}
-    }
+    }//else with nlp
 }
 
 function convertTime(time){
     let parts = [];
     let offset = null;
+    const localOffsetMins = new Date().getTimezoneOffset();
+    const localOffset = localOffsetMins*60;
     if(time["TIME24"]){
-        time["TIME24"].split(":")
+        parts = parseInt(time["TIME24"]).split(":");
+        
+        
+        
     }else if(time["TIMEUNI"]){
         
     }else if(time["TIME12"]){
@@ -48,4 +53,8 @@ function convertTime(time){
     }else if(time["TIMEOFF"]){
 
     }
+
+    if(!offset) offset = timezoneDict[(time["TZ"].toUpperCase()||time["TZLONG"].match(/[A-Z]/g).join(""))]||localOffset;
+
+    
 }
