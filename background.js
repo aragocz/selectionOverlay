@@ -32,14 +32,20 @@ function checkForSpecial(data = ""){
     if(urlregex.test(data)){
         return {type:0x1, match: data.match(urlregex).groups.url};
     }else if(timeregex.test(data)){
-        const match = data.match(timeregex);
-        //CALCULATE TIME HERE
-        const time = null;
-
-        return {type:0x2, match: time}
+        return {type:0x2, match: convertTime(data.match(timeregex).groups)}
     }
 }
 
-function convertTime(){
+function convertTime(time){
+    let parts = [];
+    let offset = null;
+    if(time["TIME24"]){
+        time["TIME24"].split(":")
+    }else if(time["TIMEUNI"]){
+        
+    }else if(time["TIME12"]){
+        
+    }else if(time["TIMEOFF"]){
 
+    }
 }
