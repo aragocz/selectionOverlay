@@ -1,23 +1,29 @@
-const timeregex = /^\W*(?:(?<TIME24>(?:[01]?\d|2[0-3])(?::[0-5]?\d){1,2})|(?:T?(?<TIMEUNI>(?:[01]?\d|2[0-3]):[0-5]?\d(?::[0-5]?\d)?)(?:(?<MODUNI>\+|\-)(?<UNIOFF>[01](?:1[0-4]|\d):[0-5]\d)))|(?:(?<TIME12>(?:(?:1[012])|[1-9]))(?::[0-5]?\d){0,2} ?(?<AMPM>AM|PM|am|pm))|(?:(?<TIMEOFF>(?:[01]?\d|2[0-3])(?::[0-5]?\d){0,2}) ?(?:(?:GMT|UTC|gmt|utc)(?<MODOFF>\+|\-)(?<OFF>(?:1[0-4]|\d)(?::[0-5]?\d){0,2})))) ?(?:(?<TZ>[A-Za-z]{1,4})|(?<TZLONG>(?:[A-Z][a-z]+ )+Time))?\W*$/;
-const urlregex = /^\W*(?<URL>[a-z]+:\/{2,3}[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[a-z0-9-_.~?#&=;,!$'()*+%]*)*)\W*$/i;
+import timezoneDict from "./timezoneDict.min.json" with {type: "json"};
+const timeregex = /^\W*(?:(?<TIME24>(?:[01]?\d|2[0-3])(?::[0-5]?\d){1,2})|(?<TIMEUNI>T?(?:[01]?\d|2[0-3]):[0-5]?\d(?::[0-5]?\d)?(?:(?:\+|\-)(?:(?:1[0-4]|0\d):[0-5]\d)|Z))|(?:(?<TIME12>(?:(?:1[012])|[1-9]))(?::[0-5]?\d){0,2} ?(?<AMPM>AM|PM|am|pm))|(?:(?<TIMEOFF>(?:[01]?\d|2[0-3])(?::[0-5]?\d){0,2}) ?(?:(?:GMT|UTC|gmt|utc)(?<MODOFF>\+|\-)(?<OFF>(?:1[0-4]|\d)(?::[0-5]?\d){0,2})))) ?(?:(?<TZ>[A-Za-z]{1,4})|(?<TZLONG>(?:[A-Z][a-z]+ )+Time))?\W*$/;
+const urlregex = /^\W*(?<PROTOCOL>[a-z]+:\/{2,3})?(?<URL>[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[a-z0-9-_.~?#&=;,!$'()*+%]*)*)\W*$/i;
+
+
+const userlocale = "cs"
 
 try{
-    const extid = browser.runtime.id;
+    const extid = chrome.runtime.id;
 
-    browser.runtime.onInstalled.addListener(() => {
-        //browser.tabs.create({ url: "browser-extension://"+extid+"/extensibles/options.html"})
-        //browser.storage.local.set({apikey: "YOURKEYHERE"})
+    chrome.runtime.onInstalled.addListener(() => {
+        //chrome.tabs.create({ url: "chrome-extension://"+extid+"/extensibles/options.html"})
+        //chrome.storage.local.set({apikey: "YOURKEYHERE"})
+        //chrome.storage.local.set({locale: Intl.DateTimeFormat()})
     });
 
     
-    browser.runtime.onMessage.addListener(handleMessages);
+    chrome.runtime.onMessage.addListener(handleMessages);
 }catch(e) {console.log(e)}
 
 function handleMessages(message, _sender, respond){
 
     switch(message.type){
         case "search":
-            browser.search.query({disposition: "NEW_TAB", text: message.selection});
+            chrome.search.query({disposition: "NEW_TAB", text: message.selection});
+            respond(true);
         break;
 
         case "check":
@@ -30,31 +36,40 @@ function handleMessages(message, _sender, respond){
 
 function checkForSpecial(data = ""){
     if(urlregex.test(data)){
-        return {type:0x1, match: data.match(urlregex).groups.url};
+        const mg = data.match(urlregex).groups;
+
+        //Assume HTTP when no protocol is found. In case HTTPS is supported, the webpage itself should handle redirection.
+        return {type:0x1, match: (mg.PROTOCOL||"http://")+mg.URL};
     }else if(timeregex.test(data)){
         return {type:0x2, match: convertTime(data.match(timeregex).groups)}
-    }//else with nlp
+    }else if(false){//else with nlp
+        return {type:0x3};
+    }else{
+        return {type:0x0};
+    }
 }
 
 function convertTime(time){
-    let parts = [];
-    let offset = null;
-    const localOffsetMins = new Date().getTimezoneOffset();
-    const localOffset = localOffsetMins*60;
-    if(time["TIME24"]){
-        parts = parseInt(time["TIME24"]).split(":");
-        
-        
-        
-    }else if(time["TIMEUNI"]){
-        
-    }else if(time["TIME12"]){
-        
-    }else if(time["TIMEOFF"]){
+    let tem = Temporal.Now.zonedDateTimeISO(timezoneDict[(time["TZ"]||time["TZLONG"]||"").toUpperCase()]||Temporal.Now.timeZoneId());
 
+    if(time["TIME24"]){
+        tem = tem.withPlainTime(time["TIME24"]);
+    }else if(time["TIMEUNI"]){
+        return Temporal.Instant.from(Temporal.Now.plainDateISO().toString()+time["TIMEUNI"]).toLocaleString(userlocale, {timeStyle : "short"});
+    }else if(time["TIME12"]){
+        const split = time["TIME12"].split(":");
+        let hour = parseInt(split[0])+(time["AMPM"]=="AM" ? 0 : 12);
+        if(hour==24){
+            tem.add("P1D");
+            split[0] = (hour%24).toString();
+        }
+        tem = tem.withPlainTime(split.join(":"));
+    }else if(time["TIMEOFF"]){
+        const timeParsed = time["TIMEOFF"] + (/^\d\d:\d\d(?!:)(?!\d\d)/.test(time["TIMEOFF"]) ? "" : ":00");
+        const offsplit = time["OFF"].split(":");
+        const str = `T${time["MODOFF"]}${offsplit[0].padStart(2, "0")}:${offsplit[1].padStart(2, "0")}`;
+        return Temporal.Instant.from(`${Temporal.Now.plainDateISO().toString()}${timeParsed}${str}`).toLocaleString(userlocale, {timeStyle : "short"});
     }
 
-    if(!offset) offset = timezoneDict[(time["TZ"].toUpperCase()||time["TZLONG"].match(/[A-Z]/g).join(""))]||localOffset;
-
-    
+    return tem.toInstant().toLocaleString(userlocale, {timeStyle : "short"});
 }

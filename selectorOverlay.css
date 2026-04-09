@@ -68,3 +68,11 @@
         clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%);
     }
 }
+
+.ext-hidden{
+    display: none !important;
+}
+
+#ext-special{
+    display: contents;
+}

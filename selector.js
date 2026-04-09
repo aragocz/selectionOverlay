@@ -1,10 +1,17 @@
 let selecting = false;
 let selText = "";
+const ac = new AbortController();
+let special = false;
 
 const overlay = document.createElement("div");
 overlay.id = "selectionOverlay";
+overlay.classList
 overlay.innerHTML = `
     <div class="ext-tooltip-container">
+        <div id="ext-special" class="ext-hidden">
+            <div class="ext-tooltip-btn" id="ext-btn-special"></div>
+            <div class="ext-tooltip-divider"></div>
+        </div>
         <div class="ext-tooltip-btn" id="ext-btn-search">Search</div>
         <div class="ext-tooltip-divider"></div>
         <div class="ext-tooltip-btn" id="ext-btn-copy">Copy</div>
@@ -37,13 +44,27 @@ function evalSelection(){
 }
 
 function createOverlay(rect){
-    sendExtensionMessage("check", {selection: window.getSelection().toString()}, (res) => {
-        // create buttons etc etc
-    });
-    
-
     document.body.appendChild(overlay);
     const container = overlay.querySelector(".ext-tooltip-container");
+
+    sendExtensionMessage("check", {selection: window.getSelection().toString()}, (res) => {
+        if(res.type == 0x0) return;
+        special = true;
+        overlay.querySelector("#ext-special").classList.remove("ext-hidden");
+        const specbutton = document.querySelector("#ext-btn-special");
+        switch(res.type){
+            case 0x1:
+                specbutton.innerHTML = "Open";
+                specbutton.addEventListener("click", () => {
+                    window.open(res.match, "_blank");
+                }, {signal: ac.signal});
+            break;
+
+            case 0x2:
+                specbutton.innerHTML = res.match;
+            break;
+        }
+    });
 
     container.classList.remove("inverted");
 
@@ -63,12 +84,18 @@ function createOverlay(rect){
 function destroyOverlay(){
     if(!overlay.parentNode) return;
     document.body.removeChild(overlay);
+
+    if(special){
+        overlay.querySelector("#ext-special").classList.add("ext-hidden");
+        ac.abort(0);
+        special = false;
+    }
 }
 
 async function sendExtensionMessage(type, obj, cb){
     const payload = obj;
-    payload.type = type
-    const res = await browser.runtime.sendMessage(payload);
+    payload.type = type;
+    const res = await chrome.runtime.sendMessage(payload);
     
     cb(res);
 }
