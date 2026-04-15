@@ -2,7 +2,6 @@ import timezoneDict from "./timezoneDict.min.json" with {type: "json"};
 const timeregex = /^\W*(?:(?<TIME24>(?:[01]?\d|2[0-3])(?::[0-5]?\d){1,2})|(?<TIMEUNI>T?(?:[01]?\d|2[0-3]):[0-5]?\d(?::[0-5]?\d)?(?:(?:\+|\-)(?:(?:1[0-4]|0\d):[0-5]\d)|Z))|(?:(?<TIME12>(?:(?:1[012])|[1-9]))(?::[0-5]?\d){0,2} ?(?<AMPM>AM|PM|am|pm))|(?:(?<TIMEOFF>(?:[01]?\d|2[0-3])(?::[0-5]?\d){0,2}) ?(?:(?:GMT|UTC|gmt|utc)(?<MODOFF>\+|\-)(?<OFF>(?:1[0-4]|\d)(?::[0-5]?\d){0,2})))) ?(?:(?<TZ>[A-Za-z]{1,4})|(?<TZLONG>(?:[A-Z][a-z]+ )+Time))?\W*$/;
 const urlregex = /^\W*(?<PROTOCOL>[a-z]+:\/{2,3})?(?<URL>[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[a-z0-9-_.~?#&=;,!$'()*+%]*)*)\W*$/i;
 
-
 const userlocale = "cs"
 
 try{
@@ -14,7 +13,20 @@ try{
         //chrome.storage.local.set({locale: Intl.DateTimeFormat()})
     });
 
-    
+    chrome.runtime.onStartup.addListener(async () => {
+        if(!(await chrome.alarms.get("heartbeat"))){
+            chrome.alarms.create("heartbeat", {
+                periodInMinutes: 0.5
+            })
+        }
+    })
+
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if(alarm.name == "heartbeat"){
+            console.log("ack")
+        }
+    })
+
     chrome.runtime.onMessage.addListener(handleMessages);
 }catch(e) {console.log(e)}
 
